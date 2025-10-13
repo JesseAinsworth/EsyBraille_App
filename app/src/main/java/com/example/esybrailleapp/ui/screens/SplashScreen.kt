@@ -14,10 +14,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.esybrailleapp.R
+import com.example.esybrailleapp.ui.theme.DarkBackground
+import com.example.esybrailleapp.ui.utils.WindowType
 import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(navController: NavHostController) {
+fun SplashScreen(navController: NavHostController, windowType: WindowType) {
     val scale = remember { Animatable(0.5f) }
     val alpha = remember { Animatable(0f) }
 
@@ -30,10 +32,10 @@ fun SplashScreen(navController: NavHostController) {
         }
     }
 
-    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF0D1B2A)) {
+    Surface(modifier = Modifier.fillMaxSize(), color = DarkBackground ){
         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
             Image(
-                painter = painterResource(id = R.drawable.easybraille_logo),
+                painter = painterResource(id = R.drawable.easybrailleblanco),
                 contentDescription = "Logo",
                 modifier = Modifier
                     .size(180.dp)
