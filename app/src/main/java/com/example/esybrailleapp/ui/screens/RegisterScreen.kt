@@ -42,7 +42,7 @@ fun RegisterScreen(navController: NavHostController, windowType: WindowType) {
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
 
-    // Pincel de gradiente para la línea, igual que en LoginScreen
+
     val indicatorBrush = Brush.horizontalGradient(
         colors = listOf(Color(0xFF005f88), BlueAccent)
     )
@@ -75,7 +75,7 @@ fun RegisterScreen(navController: NavHostController, windowType: WindowType) {
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        // Formulario de Registro
+
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
             var isNameFocused by remember { mutableStateOf(false) }

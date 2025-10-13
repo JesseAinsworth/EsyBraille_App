@@ -314,8 +314,8 @@ fun FeatureButton(
             .shadow(
                 elevation = 8.dp,
                 shape = RoundedCornerShape(20.dp),
-                spotColor = backgroundColor, // El color del brillo
-                ambientColor = backgroundColor // El color del brillo
+                spotColor = backgroundColor,
+                ambientColor = backgroundColor
             )
             .height(90.dp)
             .clickable(onClick = onClick),
