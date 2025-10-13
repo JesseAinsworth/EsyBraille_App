@@ -38,7 +38,7 @@ android {
         compose = true
     }
 
-    // 👇 IMPLEMENTACIÓN: Este bloque soluciona el error de archivos duplicados 👇
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"

@@ -25,7 +25,7 @@ import com.example.esybrailleapp.ui.utils.WindowType
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
-// Data class para representar el estado de cada nube
+
 private data class CloudState(
     val scale: Float,
     val alpha: Float,

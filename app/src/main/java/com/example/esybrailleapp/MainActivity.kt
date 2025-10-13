@@ -27,7 +27,7 @@ import com.example.esybrailleapp.ui.utils.WindowType
 import com.example.esybrailleapp.utils.AuthManager
 import java.util.*
 
-// Define la ruta raíz para el grupo de autenticación
+
 const val ROOT_ROUTE = "auth_root"
 
 class MainActivity : ComponentActivity() {
