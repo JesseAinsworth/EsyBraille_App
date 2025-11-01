@@ -2,24 +2,18 @@ package com.example.esybrailleapp.utils
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.Typeface
-import android.os.Environment
 import android.text.StaticLayout
 import android.text.TextPaint
-import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.example.esybrailleapp.R
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 fun shareBrailleAsPdf(
     context: Context,
