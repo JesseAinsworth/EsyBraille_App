@@ -45,7 +45,14 @@ fun shareBrailleAsPdf(
         val watermarkHeight = (watermarkWidth / logoBitmap.width) * logoBitmap.height
         val watermarkX = (pageInfo.pageWidth - watermarkWidth) / 2f
         val watermarkY = (pageInfo.pageHeight - watermarkHeight) / 2f
-        val watermarkPaint = Paint().apply { alpha = 50 }
+
+
+        val watermarkPaint = Paint().apply {
+            alpha = 50
+            isAntiAlias = true
+            isFilterBitmap = true
+        }
+
         canvas.drawBitmap(
             logoBitmap, null,
             Rect(
