@@ -27,7 +27,6 @@ import com.example.esybrailleapp.ROOT_ROUTE
 import com.example.esybrailleapp.ui.theme.*
 import com.example.esybrailleapp.utils.AuthManager
 import kotlin.random.Random
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountScreen(navController: NavHostController) {
@@ -36,10 +35,7 @@ fun AccountScreen(navController: NavHostController) {
             .fillMaxSize()
             .background(DarkBackground)
     ) {
-
         BrailleDotBackground()
-
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -114,8 +110,6 @@ fun AccountScreen(navController: NavHostController) {
         )
     }
 }
-
-
 private data class Dot(val x: Float, val y: Float, val alpha: Float)
 @Composable
 private fun BrailleDotBackground() {
