@@ -9,6 +9,13 @@ object ApiClient {
     private const val BASE_URL = "https://easybraille-backend.onrender.com/"
 
 
+
+
+
+
+
+
+
     private val okHttpClient = OkHttpClient.Builder()
         .connectTimeout(60, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
