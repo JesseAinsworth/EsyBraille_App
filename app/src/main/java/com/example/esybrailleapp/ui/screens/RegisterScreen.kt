@@ -27,6 +27,7 @@ import androidx.navigation.NavHostController
 import com.example.esybrailleapp.R
 import com.example.esybrailleapp.network.ApiClient
 import com.example.esybrailleapp.network.ApiService
+import com.example.esybrailleapp.network.RegisterRequest // 👈 Importa tu nuevo modelo
 import com.example.esybrailleapp.ui.theme.BlueAccent
 import com.example.esybrailleapp.ui.theme.TextPrimary
 import com.example.esybrailleapp.ui.theme.TextSecondary
@@ -41,7 +42,6 @@ fun RegisterScreen(navController: NavHostController, windowType: WindowType) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
-
 
     val indicatorBrush = Brush.horizontalGradient(
         colors = listOf(Color(0xFF005f88), BlueAccent)
@@ -74,7 +74,6 @@ fun RegisterScreen(navController: NavHostController, windowType: WindowType) {
         )
 
         Spacer(modifier = Modifier.height(48.dp))
-
 
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
@@ -173,15 +172,34 @@ fun RegisterScreen(navController: NavHostController, windowType: WindowType) {
 
         Button(
             onClick = {
+                // 1. VALIDACIÓN: Campos vacíos
+                if (name.isBlank() || email.isBlank() || password.isBlank()) {
+                    Toast.makeText(context, "Por favor, completa todos los campos", Toast.LENGTH_SHORT).show()
+                    return@Button
+                }
+
+                // 2. LLAMADA AL SERVIDOR
                 val service = ApiClient.instance.create(ApiService::class.java)
-                service.register(email, password).enqueue(object : Callback<String> {
+
+                // Creamos el objeto con los datos
+                val registerRequest = RegisterRequest(
+                    name = name,
+                    email = email,
+                    password = password
+                )
+
+                service.register(registerRequest).enqueue(object : Callback<String> {
                     override fun onResponse(call: Call<String>, response: Response<String>) {
-                        Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show()
-                        navController.navigate("login")
+                        if (response.isSuccessful) {
+                            Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show()
+                            navController.navigate("login")
+                        } else {
+                            Toast.makeText(context, "Error en el registro: ${response.code()}", Toast.LENGTH_SHORT).show()
+                        }
                     }
 
                     override fun onFailure(call: Call<String>, t: Throwable) {
-                        Toast.makeText(context, "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Fallo de conexión: ${t.message}", Toast.LENGTH_SHORT).show()
                     }
                 })
             },

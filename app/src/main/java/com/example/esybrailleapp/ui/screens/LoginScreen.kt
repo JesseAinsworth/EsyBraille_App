@@ -32,6 +32,9 @@ import com.example.esybrailleapp.ui.theme.TextPrimary
 import com.example.esybrailleapp.ui.theme.TextSecondary
 import com.example.esybrailleapp.ui.utils.WindowType
 import com.example.esybrailleapp.utils.AuthManager
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @Composable
 fun LoginScreen(navController: NavHostController, windowType: WindowType) {
@@ -57,7 +60,7 @@ fun LoginScreen(navController: NavHostController, windowType: WindowType) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            "Bienvenido ",
+            "Bienvenido",
             style = MaterialTheme.typography.headlineLarge,
             color = TextPrimary
         )
@@ -67,7 +70,6 @@ fun LoginScreen(navController: NavHostController, windowType: WindowType) {
             color = TextSecondary
         )
         Spacer(modifier = Modifier.height(48.dp))
-
 
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
@@ -141,30 +143,52 @@ fun LoginScreen(navController: NavHostController, windowType: WindowType) {
 
         Button(
             onClick = {
-
+                // 1. Validación básica
                 if (email.isBlank() || password.isBlank()) {
                     Toast.makeText(context, "Por favor, ingresa correo y contraseña", Toast.LENGTH_SHORT).show()
                     return@Button
                 }
 
-
+                // 2. Credenciales Locales (para Isaac)
                 val correctEmail = "Isaac123@gamil.com"
                 val correctPassword = "1234"
 
+                // Comprobamos primero si es el usuario Isaac
                 if (email.trim().equals(correctEmail, ignoreCase = true) && password == correctPassword) {
+
+                    AuthManager.saveUserData(context, "Isaac", email)
                     AuthManager.setLoggedIn(context, true)
+
                     Toast.makeText(context, "Bienvenido", Toast.LENGTH_SHORT).show()
                     navController.navigate("home") {
-                        popUpTo(ROOT_ROUTE) {
-                            inclusive = true
-                        }
+                        popUpTo(ROOT_ROUTE) { inclusive = true }
                     }
                 } else {
+                    // 3. Si no es Isaac, intentamos con la API (Base de Datos)
+                    val service = ApiClient.instance.create(ApiService::class.java)
 
-                    Toast.makeText(context, "Correo o contraseña incorrectos", Toast.LENGTH_SHORT).show()
+                    service.login(email, password).enqueue(object : Callback<String> {
+                        override fun onResponse(call: Call<String>, response: Response<String>) {
+                            if (response.isSuccessful) {
+
+                                // Si la API devuelve el nombre, úsalo aquí. Si no, ponemos "Usuario"
+                                AuthManager.saveUserData(context, "Usuario", email)
+                                AuthManager.setLoggedIn(context, true)
+
+                                Toast.makeText(context, "Bienvenido", Toast.LENGTH_SHORT).show()
+                                navController.navigate("home") {
+                                    popUpTo(ROOT_ROUTE) { inclusive = true }
+                                }
+                            } else {
+                                Toast.makeText(context, "Correo o contraseña incorrectos", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+
+                        override fun onFailure(call: Call<String>, t: Throwable) {
+                            Toast.makeText(context, "Error de conexión: ${t.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    })
                 }
-
-
             },
             modifier = Modifier.fillMaxWidth().height(50.dp)
         ) {
@@ -176,4 +200,3 @@ fun LoginScreen(navController: NavHostController, windowType: WindowType) {
         }
     }
 }
-

@@ -2,6 +2,14 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("org.sonarqube") version "7.0.1.6134"
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "JesseAinsworth_EsyBraille_App_f8738890-426e-40e8-9768-f722f1d0249a")
+        property("sonar.projectName", "EsyBraille_App")
+    }
 }
 
 android {

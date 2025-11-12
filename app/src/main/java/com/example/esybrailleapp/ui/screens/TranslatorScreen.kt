@@ -18,6 +18,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -34,11 +35,18 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.esybrailleapp.R
 import com.example.esybrailleapp.ROOT_ROUTE
+import com.example.esybrailleapp.network.ApiClient
+import com.example.esybrailleapp.network.ApiService
+import com.example.esybrailleapp.network.TranslationRequest
+import com.example.esybrailleapp.network.TranslationResponse
 import com.example.esybrailleapp.ui.theme.*
 import com.example.esybrailleapp.ui.utils.WindowType
 import com.example.esybrailleapp.utils.AuthManager
 import com.example.esybrailleapp.utils.saveBraillePdf
 import kotlinx.coroutines.delay
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.util.*
 
 private val brailleMap: Map<Char, String> = mapOf(
@@ -152,7 +160,7 @@ fun TranslatorScreen(
                                     popUpTo(0)
                                 }
                             },
-                            leadingIcon = { Icon(Icons.Default.ExitToApp, "Salir") }
+                            leadingIcon = { Icon(Icons.AutoMirrored.Outlined.ExitToApp, "Salir") }
                         )
                     }
                 }
@@ -251,11 +259,33 @@ fun TranslatorScreen(
                             }) {
                                 Icon(Icons.Default.ContentCopy, contentDescription = "Copiar", tint = TextPrimary)
                             }
+
+                            // --- BOTÓN GUARDAR E IMPRIMIR ---
                             IconButton(onClick = {
                                 if (brailleText.isNotBlank()) {
+                                    // 1. Guardar PDF localmente
                                     val savedFile = saveBraillePdf(context, inputText, brailleText)
+
                                     if (savedFile != null) {
-                                        Toast.makeText(context, "Guardado en el historial", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, "Guardado en historial", Toast.LENGTH_SHORT).show()
+
+                                        // 2. Enviar datos al Backend
+                                        val service = ApiClient.instance.create(ApiService::class.java)
+                                        val request = TranslationRequest(
+                                            spanishText = inputText,
+                                            brailleText = brailleText
+                                        )
+                                        service.saveTranslation(request).enqueue(object : Callback<TranslationResponse> {
+                                            override fun onResponse(call: Call<TranslationResponse>, response: Response<TranslationResponse>) {
+                                                if (response.isSuccessful) {
+                                                    Toast.makeText(context, "Guardado en la nube", Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
+                                            override fun onFailure(call: Call<TranslationResponse>, t: Throwable) {
+                                                // Opcional: Manejar error silenciosamente
+                                            }
+                                        })
+
                                     } else {
                                         Toast.makeText(context, "Error al guardar", Toast.LENGTH_SHORT).show()
                                     }
@@ -273,32 +303,25 @@ fun TranslatorScreen(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
-
             ) {
-
                 FeatureButton(
                     icon = Icons.Default.CameraAlt,
                     text = "Cámara",
-                    backgroundColor = PurpleAccent,
+                    backgroundColor = BlueAccent,
                     modifier = Modifier.weight(1f),
                     onClick = { navController.navigate("camera") }
-
                 )
-
                 FeatureButton(
-
                     icon = Icons.Default.History,
                     text = "Historial",
                     backgroundColor = GreenAccent,
                     modifier = Modifier.weight(1f),
                     onClick = { navController.navigate("history") }
-
                 )
             }
         }
     }
 }
-
 
 @Composable
 fun FeatureButton(
@@ -310,17 +333,15 @@ fun FeatureButton(
 ) {
     Card(
         modifier = modifier
-
+            .height(90.dp)
+            .clickable(onClick = onClick)
             .shadow(
                 elevation = 8.dp,
                 shape = RoundedCornerShape(20.dp),
                 spotColor = backgroundColor,
                 ambientColor = backgroundColor
-            )
-            .height(90.dp)
-            .clickable(onClick = onClick),
+            ),
         shape = RoundedCornerShape(20.dp),
-
         colors = CardDefaults.cardColors(containerColor = backgroundColor)
     ) {
         Column(
