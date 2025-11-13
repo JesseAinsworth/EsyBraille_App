@@ -1,0 +1,51 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build and analyze
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Desactiva clones superficiales para un mejor análisis
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'zulu'
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+
+      # --- ¡ESTE ES EL ARREGLO! ---
+      # Otorga permisos de ejecución al 'wrapper' de Gradle antes de intentar correrlo
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build and analyze
+        env:
+          # Token de GitHub (buena práctica tenerlo disponible)
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # El Token de SonarQube que creaste en los 'secrets'
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          # La URL de tu servidor SonarQube que pusiste en los 'secrets'
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: ./gradlew build sonar --info
