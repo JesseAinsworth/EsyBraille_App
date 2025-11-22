@@ -8,6 +8,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.speech.RecognizerIntent
+import android.speech.tts.TextToSpeech
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -33,13 +34,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.easybraille.R
-import com.easybraille.ui.ROOT_ROUTE
+import com.easybraille.ROOT_ROUTE
+
 import com.easybraille.network.ApiClient
 import com.easybraille.network.TranslationRequest
 import com.easybraille.network.TranslationResponse
+
 import com.easybraille.ui.theme.*
 import com.easybraille.ui.utils.AuthManager
-import com.easybraille.utils.saveBraillePdf
+import com.easybraille.ui.utils.WindowType
+import com.easybraille.ui.utils.saveBraillePdf
+import com.easybraille.utils.ThemeManager
 import kotlinx.coroutines.delay
 import retrofit2.Call
 import retrofit2.Callback
@@ -70,12 +75,15 @@ private fun translateToBraille(text: String): String {
 @SuppressLint("ServiceCast")
 @Composable
 fun TranslatorScreen(
+    tts: TextToSpeech,
     navController: NavHostController,
+    windowType: WindowType
 ) {
     var inputText by remember { mutableStateOf("") }
     var brailleText by remember { mutableStateOf("") }
     val context = LocalContext.current
     var showMenu by remember { mutableStateOf(false) }
+    var showThemeDialog by remember { mutableStateOf(false) }
 
     val spanishBorderColor = Color(0xFF87CEEB)
     val darkSpanishBorderColor = Color(0xFF005f88)
@@ -127,17 +135,30 @@ fun TranslatorScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { /* Vacío para un look limpio */ },
+                title = { },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent),
+                    containerColor = Color.Transparent
+                ),
                 actions = {
                     IconButton(onClick = { showMenu = true }) {
                         Icon(Icons.Default.MoreVert, contentDescription = "Menú de opciones")
                     }
+
                     DropdownMenu(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
                     ) {
+
+                        DropdownMenuItem(
+                            text = { Text("Cambiar tema") },
+                            onClick = {
+                                showMenu = false
+                                navController.navigate("theme_settings")
+                            },
+                            leadingIcon = { Icon(Icons.Default.DarkMode, "Tema") }
+                        )
+
+
                         DropdownMenuItem(
                             text = { Text("Mi Cuenta") },
                             onClick = {
@@ -146,13 +167,14 @@ fun TranslatorScreen(
                             },
                             leadingIcon = { Icon(Icons.Default.AccountCircle, "Cuenta") }
                         )
+
                         DropdownMenuItem(
                             text = { Text("Salir") },
                             onClick = {
                                 showMenu = false
-                                AuthManager.setLoggedIn(context, false)
+                                AuthManager.logout(context)
                                 navController.navigate(ROOT_ROUTE) {
-                                    popUpTo(0)
+                                    popUpTo(0) { inclusive = true }
                                 }
                             },
                             leadingIcon = { Icon(Icons.AutoMirrored.Outlined.ExitToApp, "Salir") }
@@ -171,7 +193,12 @@ fun TranslatorScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                painter = painterResource(id = R.drawable.easybrailleblanco),
+                painter = painterResource(
+                    id = if (ThemeManager.isDarkTheme())
+                        R.drawable.easybrailleblanco   // Logo blanco para modo oscuro
+                    else
+                        R.drawable.easybraillenegro    // Logo negro para modo claro
+                ),
                 contentDescription = "Logo de la App",
                 modifier = Modifier.size(48.dp)
             )
@@ -185,7 +212,7 @@ fun TranslatorScreen(
             Text(
                 text = "Traduciendo ideas",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextPrimary
+                color = TextSecondary
             )
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -201,7 +228,7 @@ fun TranslatorScreen(
                         value = inputText,
                         onValueChange = { inputText = it },
                         modifier = Modifier.fillMaxWidth().height(100.dp),
-                        placeholder = { Text("Introduzca el texto que desea traducir", color = TextPrimary) },
+                        placeholder = { Text("Introduzca el texto que desea traducir", color = TextSecondary) },
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
@@ -218,7 +245,7 @@ fun TranslatorScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Español", color = TextPrimary, fontWeight = FontWeight.Bold)
+                        Text("Español", color = TextSecondary, fontWeight = FontWeight.Bold)
                         IconButton(onClick = { permissionLauncher.launch(Manifest.permission.RECORD_AUDIO) }) {
                             Icon(Icons.Default.Mic, contentDescription = "Entrada de voz", tint = TextPrimary)
                         }
@@ -244,7 +271,7 @@ fun TranslatorScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Braille", color = TextPrimary, fontWeight = FontWeight.Bold)
+                        Text("Braille", color = TextSecondary, fontWeight = FontWeight.Bold)
                         Row {
                             IconButton(onClick = {
                                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -254,19 +281,19 @@ fun TranslatorScreen(
                             }) {
                                 Icon(Icons.Default.ContentCopy, contentDescription = "Copiar", tint = TextPrimary)
                             }
-
-                            // --- BOTÓN GUARDAR E IMPRIMIR ---
                             IconButton(onClick = {
                                 if (brailleText.isNotBlank()) {
-                                    // 1. Guardar PDF localmente
                                     val savedFile = saveBraillePdf(context, inputText, brailleText)
-
                                     if (savedFile != null) {
-                                        Toast.makeText(context, "Guardado en historial", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, "Guardado en el historial", Toast.LENGTH_SHORT).show()
 
-                                        // 2. Enviar datos al Backend
+                                        // --- CORRECCIÓN DE LA LLAMADA A LA API ---
                                         val service = ApiClient.instance
-                                        val request = TranslationRequest(text = inputText)
+                                        val request = TranslationRequest(
+                                            userId = AuthManager.getUserId(context),
+                                             originalText = inputText,
+                                            brailleText = brailleText
+                                        )
                                         service.saveTranslation(request).enqueue(object : Callback<TranslationResponse> {
                                             override fun onResponse(call: Call<TranslationResponse>, response: Response<TranslationResponse>) {
                                                 if (response.isSuccessful) {
@@ -295,25 +322,69 @@ fun TranslatorScreen(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
+
             ) {
+
                 FeatureButton(
                     icon = Icons.Default.CameraAlt,
                     text = "Cámara",
-                    backgroundColor = BlueAccent,
+                    backgroundColor = BlueAccent, // CORREGIDO: Usando el BlueAccent de tu tema
                     modifier = Modifier.weight(1f),
                     onClick = { navController.navigate("camera") }
+
                 )
+
                 FeatureButton(
+
                     icon = Icons.Default.History,
                     text = "Historial",
                     backgroundColor = GreenAccent,
                     modifier = Modifier.weight(1f),
                     onClick = { navController.navigate("history") }
+
                 )
             }
         }
     }
+
+
+
+    if (showThemeDialog) {
+        AlertDialog(
+            onDismissRequest = { showThemeDialog = false },
+            title = { Text("Seleccionar Tema") },
+            text = {
+                Column {
+                    Text("Elige el estilo visual de la aplicación")
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    TextButton(onClick = {
+                        ThemeManager.setTheme(0)
+                        showThemeDialog = false
+                    }) {
+                        Text("Claro")
+                    }
+
+                    TextButton(onClick = {
+                        ThemeManager.setTheme(1)
+                        showThemeDialog = false
+                    }) {
+                        Text("Oscuro")
+                    }
+
+                    TextButton(onClick = {
+                        ThemeManager.setTheme(2)
+                        showThemeDialog = false
+                    }) {
+                        Text("Predeterminado del sistema")
+                    }
+                }
+            },
+            confirmButton = {}
+        )
+    }
 }
+
 
 @Composable
 fun FeatureButton(
@@ -325,15 +396,17 @@ fun FeatureButton(
 ) {
     Card(
         modifier = modifier
-            .height(90.dp)
-            .clickable(onClick = onClick)
+
             .shadow(
                 elevation = 8.dp,
                 shape = RoundedCornerShape(20.dp),
                 spotColor = backgroundColor,
                 ambientColor = backgroundColor
-            ),
+            )
+            .height(90.dp)
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
+
         colors = CardDefaults.cardColors(containerColor = backgroundColor)
     ) {
         Column(

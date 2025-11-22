@@ -14,7 +14,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,8 +36,7 @@ import com.easybraille.ui.utils.WindowType
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
-import com.easybraille.utils.saveBraillePdf
-import com.easybraille.utils.translateToBraille
+import com.easybraille.ui.utils.saveBraillePdf
 import kotlinx.coroutines.delay
 import java.io.File
 import java.text.SimpleDateFormat
@@ -46,10 +47,10 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import com.easybraille.ui.theme.BlueAccent
 import com.easybraille.ui.theme.CardBackground
-import com.easybraille.ui.theme.DarkBackground
 import com.easybraille.ui.theme.GreenAccent
 import com.easybraille.ui.theme.TextPrimary
 import com.easybraille.ui.theme.TextSecondary
+import com.esybrailleapp.utils.translateToBraille
 
 private fun createTempImageUri(context: Context): Uri {
     val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
@@ -71,6 +72,9 @@ fun CameraScreen(navController: NavHostController, windowType: WindowType) {
     var extractedText by remember { mutableStateOf("") }
     var brailleTranslation by remember { mutableStateOf("") }
     var isProcessing by remember { mutableStateOf(false) }
+
+    // 1. Estado para permitir deslizar si el texto es muy largo
+    val scrollState = rememberScrollState()
 
     val spanishBorderBrush = Brush.verticalGradient(
         colors = listOf(Color(0xFF005f88), BlueAccent)
@@ -116,7 +120,13 @@ fun CameraScreen(navController: NavHostController, windowType: WindowType) {
             val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
             recognizer.process(image)
                 .addOnSuccessListener { visionText ->
+                    // 2. CORRECCIÓN: Limpieza de texto
+                    // Reemplazamos saltos de línea (\n) por espacios para que fluya como párrafo
                     extractedText = visionText.text
+                        .replace('\n', ' ')
+                        .replace("\\s+".toRegex(), " ") // Quita espacios dobles extra
+                        .trim()
+
                     isProcessing = false
                 }
                 .addOnFailureListener { e ->
@@ -144,7 +154,7 @@ fun CameraScreen(navController: NavHostController, windowType: WindowType) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(DarkBackground)
+            .background(MaterialTheme.colorScheme.background)
             .windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -157,7 +167,7 @@ fun CameraScreen(navController: NavHostController, windowType: WindowType) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.6f),
+                    .weight(0.5f), // Ajuste de peso para equilibrar imagen vs texto
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = CardBackground)
             ) {
@@ -188,7 +198,9 @@ fun CameraScreen(navController: NavHostController, windowType: WindowType) {
 
 
             Column(
-                modifier = Modifier.weight(0.4f)
+                modifier = Modifier
+                    .weight(0.5f) // Más espacio para los textos
+                    .verticalScroll(scrollState) // 3. Habilitamos scroll aquí
             ) {
                 if (isProcessing) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -205,8 +217,7 @@ fun CameraScreen(navController: NavHostController, windowType: WindowType) {
                     ) {
                         Text(
                             text = extractedText.ifEmpty { "Texto reconocido..." },
-                            modifier = Modifier.padding(16.dp)
-                                .heightIn(min = 40.dp), // Altura mínima
+                            modifier = Modifier.padding(16.dp),
                             color = if (extractedText.isEmpty()) TextSecondary else TextPrimary
                         )
                     }
@@ -221,8 +232,7 @@ fun CameraScreen(navController: NavHostController, windowType: WindowType) {
                     ) {
                         Text(
                             text = brailleTranslation.ifEmpty { "Traducción a Braille..." },
-                            modifier = Modifier.padding(16.dp)
-                                .heightIn(min = 40.dp), // Altura mínima
+                            modifier = Modifier.padding(16.dp),
                             color = if (brailleTranslation.isEmpty()) TextSecondary else TextPrimary
                         )
                     }
@@ -232,7 +242,7 @@ fun CameraScreen(navController: NavHostController, windowType: WindowType) {
 
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Spacer(modifier = Modifier.height(0.4.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) },
                 modifier = Modifier.fillMaxWidth().height(50.dp),

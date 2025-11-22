@@ -93,6 +93,7 @@ dependencies {
 
     implementation("com.google.mlkit:text-recognition:16.0.0")
     implementation(libs.firebase.appdistribution.gradle)
+    implementation(libs.play.services.games)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -2,19 +2,21 @@ package com.easybraille.network
 
 import retrofit2.Call
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface ApiService {
 
-    // Endpoint para el login de usuario
-    @POST("auth/login")
+    @POST("api/auth/login")
     fun login(@Body request: LoginRequest): Call<AuthResponse>
 
-    // Endpoint para el registro de usuario
-    @POST("auth/register")
+    @POST("api/auth/register")
     fun register(@Body request: RegisterRequest): Call<AuthResponse>
 
-    // Endpoint para guardar la traducción
-    @POST("translate")
+    @POST("api/translations")
     fun saveTranslation(@Body request: TranslationRequest): Call<TranslationResponse>
+
+    @GET("api/translations/history")
+    fun getTranslationHistory(@Query("userId") userId: String): Call<HistoryResponse>
 }

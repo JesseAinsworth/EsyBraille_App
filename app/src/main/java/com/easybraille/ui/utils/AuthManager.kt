@@ -4,40 +4,49 @@ import android.content.Context
 import android.content.SharedPreferences
 
 object AuthManager {
-    private const val PREFS_NAME = "AuthPrefs"
-    private const val IS_LOGGED_IN = "isLoggedIn"
-    private const val USER_NAME = "userName"
-    private const val USER_EMAIL = "userEmail"
 
-    private fun getPreferences(context: Context): SharedPreferences {
-        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private const val PREF_NAME = "easybraille_prefs"
+    private const val KEY_LOGGED_IN = "logged_in"
+    private const val KEY_USER_ID = "user_id"
+    private const val KEY_USER_NAME = "user_name"
+    private const val KEY_USER_EMAIL = "user_email"
+
+    private fun prefs(context: Context): SharedPreferences {
+        return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
     }
 
-    // Guarda el estado de sesión
-    fun setLoggedIn(context: Context, isLoggedIn: Boolean) {
-        getPreferences(context).edit().putBoolean(IS_LOGGED_IN, isLoggedIn).apply()
+    fun saveUserData(context: Context, id: String, name: String, email: String) {
+        prefs(context).edit()
+            .putString(KEY_USER_ID, id)
+            .putString(KEY_USER_NAME, name)
+            .putString(KEY_USER_EMAIL, email)
+            .apply()
     }
 
-    // Verifica si hay sesión iniciada
+    fun setLoggedIn(context: Context, value: Boolean) {
+        prefs(context).edit().putBoolean(KEY_LOGGED_IN, value).apply()
+    }
+
     fun isLoggedIn(context: Context): Boolean {
-        return getPreferences(context).getBoolean(IS_LOGGED_IN, false)
+        return prefs(context).getBoolean(KEY_LOGGED_IN, false)
     }
 
-    // Guarda los datos del usuario
-    fun saveUserData(context: Context, name: String, email: String) {
-        val editor = getPreferences(context).edit()
-        editor.putString(USER_NAME, name)
-        editor.putString(USER_EMAIL, email)
-        editor.apply()
+    fun getUserId(context: Context): String {
+        return prefs(context).getString(KEY_USER_ID, "") ?: ""
     }
 
-    // Obtiene el nombre guardado
     fun getUserName(context: Context): String {
-        return getPreferences(context).getString(USER_NAME, null) ?: "Usuario"
+        return prefs(context).getString(KEY_USER_NAME, "") ?: ""
     }
 
-    // Obtiene el correo guardado
     fun getUserEmail(context: Context): String {
-        return getPreferences(context).getString(USER_EMAIL, null) ?: "correo@ejemplo.com"
+        return prefs(context).getString(KEY_USER_EMAIL, "") ?: ""
+    }
+
+    fun logout(context: Context) {
+        prefs(context).edit()
+            .putBoolean(KEY_LOGGED_IN, false)
+            .remove(KEY_USER_ID)
+            .apply()
     }
 }

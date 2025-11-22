@@ -1,4 +1,4 @@
-package com.easybraille.ui.screens
+package com.esybraille.ui.screens
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
@@ -13,8 +13,10 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -22,8 +24,9 @@ import androidx.navigation.NavHostController
 import com.easybraille.R
 import com.easybraille.ui.theme.BlueAccent
 import com.easybraille.ui.utils.WindowType
+import com.easybraille.utils.ThemeManager
+import kotlinx.coroutines.delay
 import kotlin.random.Random
-
 
 private data class CloudState(
     val scale: Float,
@@ -35,7 +38,7 @@ private data class CloudState(
 @Composable
 fun WelcomeScreen(navController: NavHostController, windowType: WindowType) {
     val logoScale = remember { Animatable(0.5f) }
-
+    val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
 
     LaunchedEffect(Unit) {
         logoScale.animateTo(1f, animationSpec = tween(1000, easing = EaseOutBack))
@@ -45,14 +48,11 @@ fun WelcomeScreen(navController: NavHostController, windowType: WindowType) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(MaterialTheme.colorScheme.background)
     ) {
-
         repeat(7) { index ->
             NeonCloudEffect(seed = index)
         }
-
-
 
         Column(
             modifier = Modifier
@@ -62,16 +62,28 @@ fun WelcomeScreen(navController: NavHostController, windowType: WindowType) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                painter = painterResource(id = R.drawable.easybrailleblanco),
+                painter = painterResource(id = if (ThemeManager.isDarkTheme())
+                    R.drawable.easybrailleblanco
+                else
+                    R.drawable.easybraillenegro),
                 contentDescription = "Logo",
                 modifier = Modifier
                     .size(160.dp)
                     .scale(logoScale.value),
-                contentScale = ContentScale.Fit
+                contentScale = ContentScale.Fit,
+                colorFilter = if (!isDarkTheme) ColorFilter.tint(Color.Black) else null
             )
             Spacer(modifier = Modifier.height(32.dp))
-            Text("Traduciendo Ideas", style = MaterialTheme.typography.headlineMedium, color = Color.White)
+
+
+            Text(
+                text = "Traduciendo Ideas",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground // Se adapta automáticamente
+            )
+
             Spacer(modifier = Modifier.height(48.dp))
+
             Button(
                 onClick = { navController.navigate("login") },
                 modifier = Modifier.fillMaxWidth(),
@@ -80,10 +92,13 @@ fun WelcomeScreen(navController: NavHostController, windowType: WindowType) {
                 Text("Iniciar sesión", color = Color.White)
             }
             Spacer(modifier = Modifier.height(16.dp))
+
             OutlinedButton(
                 onClick = { navController.navigate("register") },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = BlueAccent),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = BlueAccent
+                ),
                 border = ButtonDefaults.outlinedButtonBorder.copy(brush = SolidColor(BlueAccent))
             ) {
                 Text("Registrarse")
@@ -91,6 +106,7 @@ fun WelcomeScreen(navController: NavHostController, windowType: WindowType) {
         }
     }
 }
+
 
 @Composable
 private fun NeonCloudEffect(seed: Int) {

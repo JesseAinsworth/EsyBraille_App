@@ -1,4 +1,4 @@
-package com.example.esybrailleapp.utils
+package com.esybrailleapp.utils
 
 import java.util.Locale
 import kotlin.text.iterator

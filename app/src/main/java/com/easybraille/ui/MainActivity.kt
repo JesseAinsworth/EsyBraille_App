@@ -1,4 +1,4 @@
-package com.easybraille.ui
+package com.easybraille
 
 import android.graphics.Color
 import android.os.Bundle
@@ -7,31 +7,33 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import com.easybraille.ui.screens.AccountScreen
-import com.easybraille.ui.screens.CameraScreen
-import com.easybraille.ui.screens.HistoryScreen
-import com.easybraille.ui.screens.RegisterScreen
-import com.easybraille.ui.screens.TranslatorScreen
-import com.easybraille.ui.screens.WelcomeScreen
-import com.easybraille.ui.screens.LoginScreen
-import com.easybraille.ui.theme.EsyBrailleAPPTheme
+import com.easybraille.ui.screens.*
+import com.easybraille.ui.theme.AppTheme
 import com.easybraille.ui.utils.currentWindowType
 import com.easybraille.ui.utils.WindowType
 import com.easybraille.ui.utils.AuthManager
-import java.util.*
+import com.easybraille.utils.ThemeManager
+import com.esybraille.ui.screens.WelcomeScreen
+import comesybraille.ui.screens.RegisterScreen
 
+import java.util.*
 
 const val ROOT_ROUTE = "auth_root"
 
@@ -40,12 +42,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
-
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)
-        )
         super.onCreate(savedInstanceState)
+
+        ThemeManager.init(this)
 
         tts = TextToSpeech(this) { status ->
             if (status == TextToSpeech.SUCCESS) {
@@ -54,7 +53,29 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            EsyBrailleAPPTheme(darkTheme = true) {
+            val themeMode by ThemeManager.currentTheme.collectAsState()
+            val systemInDark = isSystemInDarkTheme()
+
+            val useDarkTheme = when (themeMode) {
+                1 -> true
+                0 -> false
+                else -> systemInDark
+            }
+
+            // Configuración de barras
+            val barStyle = if (useDarkTheme) {
+                SystemBarStyle.dark(Color.TRANSPARENT)
+            } else {
+                SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+            }
+
+            enableEdgeToEdge(
+                statusBarStyle = barStyle,
+                navigationBarStyle = barStyle
+            )
+
+            // Llamada al tema con el nombre y parámetros correctos
+            AppTheme(darkTheme = useDarkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -65,6 +86,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
     override fun onDestroy() {
         super.onDestroy()
         tts.shutdown()
@@ -78,9 +100,9 @@ fun AppNavHost(
     tts: TextToSpeech,
     windowType: WindowType
 ) {
-    val context = LocalContext.current
-
+    val context = androidx.compose.ui.platform.LocalContext.current
     val startDestination = if (AuthManager.isLoggedIn(context)) "home" else ROOT_ROUTE
+
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -95,10 +117,10 @@ fun AppNavHost(
             composable("register") { RegisterScreen(navController, windowType) }
         }
 
-        composable("home") { TranslatorScreen(navController) }
+        composable("home") { TranslatorScreen(tts, navController, windowType) }
         composable("history") { HistoryScreen(navController) }
         composable("camera") { CameraScreen(navController, windowType) }
         composable("account") { AccountScreen(navController) }
-
+        composable("theme_settings") { ThemeSettingsScreen(navController) }
     }
 }
