@@ -32,9 +32,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.easybraille.R
-import com.easybraille.ROOT_ROUTE
+import com.easybraille.ui.ROOT_ROUTE
 
 import com.easybraille.network.ApiClient
 import com.easybraille.network.TranslationRequest

@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.easybraille.R
-import com.easybraille.ROOT_ROUTE
+import com.easybraille.ui.ROOT_ROUTE
 import com.easybraille.ui.theme.*
 import com.easybraille.ui.utils.AuthManager
 import com.easybraille.ui.utils.FavoritesManager

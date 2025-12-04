@@ -19,4 +19,18 @@ interface ApiService {
 
     @GET("api/translations/history")
     fun getTranslationHistory(@Query("userId") userId: String): Call<HistoryResponse>
+
+    // ========== ADMIN ENDPOINTS ==========
+    
+    @GET("api/admin/stats")
+    fun getAdminStats(): Call<AdminStatsResponse>
+
+    @GET("api/admin/users")
+    fun getAllUsers(): Call<AdminUsersResponse>
+
+    @GET("api/admin/translations")
+    fun getAllTranslations(@Query("limit") limit: Int? = 50): Call<AdminTranslationsResponse>
+
+    @GET("api/admin/test-connection")
+    fun testAdminConnection(): Call<AdminTestResponse>
 }

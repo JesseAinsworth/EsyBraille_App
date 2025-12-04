@@ -29,7 +29,7 @@ import androidx.navigation.NavHostController
 import com.easybraille.R
 import com.easybraille.network.ApiClient
 import com.easybraille.network.LoginRequest
-import com.easybraille.ROOT_ROUTE
+import com.easybraille.ui.ROOT_ROUTE
 import com.easybraille.ui.theme.BlueAccent
 import com.easybraille.ui.theme.TextPrimary
 import com.easybraille.ui.theme.TextSecondary

@@ -1,4 +1,4 @@
-package com.easybraille
+package com.easybraille.ui
 
 import android.graphics.Color
 import android.os.Bundle

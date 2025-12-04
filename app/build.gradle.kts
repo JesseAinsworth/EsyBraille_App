@@ -88,7 +88,8 @@ dependencies {
     // Dependencias de Red Corregidas
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:3.14.9") // <-- VERSIÓN CORREGIDA
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("org.conscrypt:conscrypt-android:2.5.2") // <-- DEPENDENCIA AÑADIDA
 
     implementation("com.google.mlkit:text-recognition:16.0.0")

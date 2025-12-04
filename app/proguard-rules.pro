@@ -4,8 +4,24 @@
 # Mantiene los nombres de los campos en tus clases de modelos de datos (AuthResponse, etc.)
 # Si no haces esto, Gson no sabrá cómo mapear el JSON a tus objetos.
 -keepclassmembers,allowobfuscation class com.easybraille.network.** { *; }
+-keep class com.easybraille.network.** { *; }
 -keep,allowobfuscation,allowshrinking class * extends com.google.gson.reflect.TypeToken
 -keep,allowobfuscation,allowshrinking class com.google.gson.reflect.TypeToken
+
+# Mantener anotaciones de Gson
+-keepattributes Signature
+-keepattributes *Annotation*
+-keepattributes EnclosingMethod
+
+# Reglas específicas para modelos de datos
+-keep class com.easybraille.network.AdminModels** { *; }
+-keep class com.easybraille.network.AuthResponse** { *; }
+-keep class com.easybraille.network.TranslationModels** { *; }
+
+# Mantener nombres de campos para serialización JSON
+-keepclassmembers class com.easybraille.network.** {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
 
 # --- Reglas para OkHttp y Retrofit ---
 # Estas son las reglas estándar recomendadas por los desarrolladores de OkHttp.
